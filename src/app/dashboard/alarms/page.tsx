@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, RefreshCw } from "lucide-react";
+import { CheckCheck, Eye, RefreshCw } from "lucide-react";
 import { AlarmEvent } from "@/types";
 import { AlarmSeverityBadge, AlarmStatusBadge } from "@/components/alarms/alarm-severity-badge";
 import { Button } from "@/components/ui/button";
@@ -36,13 +36,16 @@ import {
   ignoreAlarm,
   resolveAlarm,
 } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/context";
 import { compareApiDatesDesc, formatApiDateTime, formatApiDistanceToNow } from "@/lib/dates";
 
 export default function AlarmsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
+  const [pendingAckId, setPendingAckId] = useState<string | null>(null);
 
   const fetcher = useCallback(
     () =>
@@ -55,22 +58,29 @@ export default function AlarmsPage() {
 
   const { data: alarms, isLoading, refresh } = usePolling(fetcher, 10_000);
 
+  const actor = user?.email ?? user?.name ?? "unknown";
+
   const handleAck = async (alarm: AlarmEvent) => {
-    await acknowledgeAlarm(alarm.event_id);
-    toast.success("Alarm acknowledged");
-    refresh();
-    setSelectedAlarm(null);
+    setPendingAckId(alarm.event_id);
+    try {
+      await acknowledgeAlarm(alarm.event_id, actor);
+      toast.success("Alarm acknowledged");
+      refresh();
+      setSelectedAlarm(null);
+    } finally {
+      setPendingAckId(null);
+    }
   };
 
   const handleResolve = async (alarm: AlarmEvent) => {
-    await resolveAlarm(alarm.event_id);
+    await resolveAlarm(alarm.event_id, actor);
     toast.success("Alarm resolved");
     refresh();
     setSelectedAlarm(null);
   };
 
   const handleIgnore = async (alarm: AlarmEvent) => {
-    await ignoreAlarm(alarm.event_id);
+    await ignoreAlarm(alarm.event_id, actor);
     toast.info("Alarm ignored");
     refresh();
     setSelectedAlarm(null);
@@ -142,7 +152,7 @@ export default function AlarmsPage() {
                 <TableHead>Summary</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>When</TableHead>
-                <TableHead className="w-[80px]">Actions</TableHead>
+                <TableHead className="w-[110px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -168,14 +178,29 @@ export default function AlarmsPage() {
                       {formatApiDistanceToNow(alarm.started_at)}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={(e) => { e.stopPropagation(); setSelectedAlarm(alarm); }}
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {alarm.status === "OPEN" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            disabled={pendingAckId === alarm.event_id}
+                            onClick={(e) => { e.stopPropagation(); handleAck(alarm); }}
+                            title="Acknowledge"
+                          >
+                            <CheckCheck className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(e) => { e.stopPropagation(); setSelectedAlarm(alarm); }}
+                          title="View details"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

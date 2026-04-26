@@ -76,7 +76,7 @@ async function http<T>(
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(options.body !== undefined ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
@@ -452,7 +452,7 @@ export async function getAlarm(eventId: string): Promise<AlarmEvent> {
   return http<AlarmEvent>(`/events/${eventId}`);
 }
 
-export async function acknowledgeAlarm(eventId: string, note?: string): Promise<void> {
+export async function acknowledgeAlarm(eventId: string, acknowledgedBy: string, note?: string): Promise<void> {
   if (USE_MOCK) {
     await delay(300);
     const alarm = MOCK_ALARMS.find((a) => a.event_id === eventId);
@@ -461,11 +461,11 @@ export async function acknowledgeAlarm(eventId: string, note?: string): Promise<
   }
   await http(`/events/${eventId}/acknowledge`, {
     method: "POST",
-    body: JSON.stringify({ note }),
+    body: JSON.stringify({ acknowledged_by: acknowledgedBy, note: note ?? null }),
   });
 }
 
-export async function resolveAlarm(eventId: string, resolution?: string): Promise<void> {
+export async function resolveAlarm(eventId: string, resolvedBy: string, resolution?: string): Promise<void> {
   if (USE_MOCK) {
     await delay(300);
     const alarm = MOCK_ALARMS.find((a) => a.event_id === eventId);
@@ -474,11 +474,11 @@ export async function resolveAlarm(eventId: string, resolution?: string): Promis
   }
   await http(`/events/${eventId}/resolve`, {
     method: "POST",
-    body: JSON.stringify({ resolution }),
+    body: JSON.stringify({ resolved_by: resolvedBy, resolution: resolution ?? null }),
   });
 }
 
-export async function ignoreAlarm(eventId: string, reason?: string): Promise<void> {
+export async function ignoreAlarm(eventId: string, ignoredBy: string, reason?: string): Promise<void> {
   if (USE_MOCK) {
     await delay(300);
     const alarm = MOCK_ALARMS.find((a) => a.event_id === eventId);
@@ -487,7 +487,7 @@ export async function ignoreAlarm(eventId: string, reason?: string): Promise<voi
   }
   await http(`/events/${eventId}/ignore`, {
     method: "POST",
-    body: JSON.stringify({ reason }),
+    body: JSON.stringify({ ignored_by: ignoredBy, reason: reason ?? null }),
   });
 }
 

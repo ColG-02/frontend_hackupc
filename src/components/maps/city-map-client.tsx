@@ -46,9 +46,6 @@ function statusLabel(value?: string): string {
   return value ? value.replace(/_/g, " ") : "UNKNOWN";
 }
 
-function formatMaybeNumber(value: number | undefined, suffix = ""): string {
-  return typeof value === "number" ? `${value.toFixed(0)}${suffix}` : "-";
-}
 
 function makeContainerIcon(container: Container): L.DivIcon {
   const color = getFillColor(
@@ -127,10 +124,6 @@ function containerPopup(container: Container): string {
       <div style="border:1px solid #e2e8f0;border-radius:8px;padding:7px 8px">
         <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Camera</div>
         <div style="font-size:12px;font-weight:800;margin-top:2px">${statusLabel(container.latest_state.camera_state)}</div>
-      </div>
-      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:7px 8px">
-        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Weight</div>
-        <div style="font-size:12px;font-weight:800;margin-top:2px">${formatMaybeNumber(container.latest_state.weight_kg, " kg")}</div>
       </div>
     </div>
     <div style="font-size:11px;color:#64748b;margin-bottom:10px">Last seen: ${escapeHtml(lastSeen)}</div>

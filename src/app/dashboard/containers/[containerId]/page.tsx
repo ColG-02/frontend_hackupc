@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Thermometer,
   Trash2,
-  Weight,
   Wifi,
   Zap,
 } from "lucide-react";
@@ -89,7 +88,6 @@ export default function ContainerDetailPage() {
     time: formatApiTime(p.ts),
     fill: p.fused_fill_pct,
     temp: p.temperature_c,
-    weight: p.weight_kg,
   }));
 
   return (
@@ -134,7 +132,6 @@ export default function ContainerDetailPage() {
           { label: "Camera", value: <CameraStateBadge state={ls.camera_state} />, icon: null },
           { label: "Temp", value: ls.temperature_c ? `${ls.temperature_c.toFixed(1)}°C` : "—", icon: Thermometer },
           { label: "Humidity", value: ls.humidity_pct ? `${ls.humidity_pct.toFixed(0)}%` : "—", icon: Droplets },
-          { label: "Weight", value: ls.weight_kg ? `${ls.weight_kg.toFixed(0)} kg` : "—", icon: Weight },
           { label: "Distance", value: ls.ultrasonic_distance_cm ? `${ls.ultrasonic_distance_cm} cm` : "—", icon: Zap },
           { label: "Flame", value: ls.flame_detected ? `${(ls.flame_intensity_pct ?? 0).toFixed(0)}%` : "No", icon: Flame },
           { label: "Device", value: <DeviceStatusBadge status={ls.device_status} />, icon: Wifi },
@@ -171,18 +168,16 @@ export default function ContainerDetailPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Temperature & Weight (24h)</CardTitle>
+            <CardTitle className="text-sm">Temperature (24h)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="time" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                <YAxis yAxisId="left" tick={{ fontSize: 10 }} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Line yAxisId="left" type="monotone" dataKey="temp" stroke="#f59e0b" dot={false} strokeWidth={2} name="Temp (°C)" />
-                <Line yAxisId="right" type="monotone" dataKey="weight" stroke="#3b82f6" dot={false} strokeWidth={2} name="Weight (kg)" />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip formatter={(v) => [`${v}°C`, "Temp"]} />
+                <Line type="monotone" dataKey="temp" stroke="#f59e0b" dot={false} strokeWidth={2} name="Temp (°C)" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
