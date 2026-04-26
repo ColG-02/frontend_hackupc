@@ -2,7 +2,6 @@
 
 import { useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft,
   Droplets,
@@ -38,6 +37,7 @@ import {
   getContainer,
   getContainerTelemetry,
 } from "@/lib/api/client";
+import { formatApiDistanceToNow, formatApiTime } from "@/lib/dates";
 
 export default function ContainerDetailPage() {
   const params = useParams<{ containerId: string }>();
@@ -86,7 +86,7 @@ export default function ContainerDetailPage() {
 
   const ls = container.latest_state;
   const chartData = (telemetry ?? []).map((p) => ({
-    time: new Date(p.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    time: formatApiTime(p.ts),
     fill: p.fused_fill_pct,
     temp: p.temperature_c,
     weight: p.weight_kg,
@@ -117,7 +117,7 @@ export default function ContainerDetailPage() {
           {ls.last_seen_at && (
             <p className="text-xs text-muted-foreground">
               Last seen{" "}
-              {formatDistanceToNow(new Date(ls.last_seen_at), { addSuffix: true })}
+              {formatApiDistanceToNow(ls.last_seen_at)}
             </p>
           )}
         </div>
@@ -225,7 +225,7 @@ export default function ContainerDetailPage() {
                     <AlarmStatusBadge status={alarm.status} />
                     <span className="text-xs font-medium">{alarm.type}</span>
                     <span className="ml-auto text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(alarm.started_at), { addSuffix: true })}
+                      {formatApiDistanceToNow(alarm.started_at)}
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{alarm.summary}</p>

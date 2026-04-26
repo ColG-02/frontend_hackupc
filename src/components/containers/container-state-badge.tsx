@@ -40,6 +40,7 @@ export function DeviceStatusBadge({ status }: { status?: DeviceStatus }) {
     OFFLINE: { label: "Offline", class: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300" },
     DEGRADED: { label: "Degraded", class: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" },
     FAULT: { label: "Fault", class: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
+    MAINTENANCE: { label: "Maintenance", class: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" },
     UNKNOWN: { label: "Unknown", class: "bg-gray-100 text-gray-500" },
   };
   const cfg = map[status ?? "UNKNOWN"] ?? map.UNKNOWN;

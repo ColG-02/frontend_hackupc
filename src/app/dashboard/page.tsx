@@ -15,16 +15,13 @@ import {
 } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { AlarmFeed } from "@/components/dashboard/alarm-feed";
-import { CrewStatusPanel } from "@/components/dashboard/crew-status-panel";
 import { FillDistributionChart } from "@/components/dashboard/fill-distribution-chart";
-import { OperationsMap } from "@/components/maps/operations-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePolling } from "@/hooks/use-polling";
 import {
   getAlarms,
   getContainers,
-  getCrews,
   getDashboardSummary,
 } from "@/lib/api/client";
 
@@ -32,12 +29,10 @@ export default function DashboardPage() {
   const fetchSummary = useCallback(() => getDashboardSummary(), []);
   const fetchContainers = useCallback(() => getContainers().then((r) => r.items), []);
   const fetchAlarms = useCallback(() => getAlarms({ status: "OPEN" }).then((r) => r.items), []);
-  const fetchCrews = useCallback(() => getCrews(), []);
 
   const summary = usePolling(fetchSummary, 15_000);
   const containers = usePolling(fetchContainers, 30_000);
   const alarms = usePolling(fetchAlarms, 10_000);
-  const crews = usePolling(fetchCrews, 10_000);
 
   const s = summary.data;
   const isLoadingKpi = summary.isLoading;
@@ -60,7 +55,6 @@ export default function DashboardPage() {
     summary.refresh();
     containers.refresh();
     alarms.refresh();
-    crews.refresh();
   };
 
   return (
@@ -86,35 +80,6 @@ export default function DashboardPage() {
         <KpiCard title="Open Alarms" value={s?.open_alarms ?? 0} icon={AlertTriangle} color={s?.critical_alarms ? "red" : "yellow"} isLoading={isLoadingKpi} />
         <KpiCard title="Crews on Duty" value={s?.crews_on_duty ?? 0} icon={Users} color="blue" isLoading={isLoadingKpi} />
         <KpiCard title="Open Tickets" value={s?.open_tickets ?? 0} icon={Wrench} color="blue" isLoading={isLoadingKpi} />
-      </div>
-
-      {/* Map + side panels */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Map */}
-        <Card className="lg:col-span-2 overflow-hidden">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-semibold">City Map</CardTitle>
-            <div className="flex gap-1.5 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500 inline-block" />Critical</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-500 inline-block" />Full</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500 inline-block" />Near full</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500 inline-block" />OK</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-gray-400 inline-block" />Offline</span>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 h-80 lg:h-96">
-            <OperationsMap
-              containers={allContainers}
-              crews={crews.data ?? []}
-              height="100%"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Right column */}
-        <div className="space-y-4">
-          <CrewStatusPanel crews={crews.data ?? []} isLoading={crews.isLoading} />
-        </div>
       </div>
 
       {/* Lower row: alarms + chart */}

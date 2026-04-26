@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { AlarmEvent } from "@/types";
 import { AlarmSeverityBadge, AlarmStatusBadge } from "@/components/alarms/alarm-severity-badge";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { acknowledgeAlarm, resolveAlarm } from "@/lib/api/client";
+import { compareApiDatesDesc, formatApiDistanceToNow } from "@/lib/dates";
 
 interface Props {
   alarms: AlarmEvent[];
@@ -61,7 +61,7 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
               const sev = { CRITICAL: 0, WARNING: 1, INFO: 2 };
               return (
                 (sev[a.severity] ?? 2) - (sev[b.severity] ?? 2) ||
-                new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
+                compareApiDatesDesc(a.started_at, b.started_at)
               );
             })
             .slice(0, 8)
@@ -82,7 +82,7 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
                     </div>
                     <p className="text-xs text-foreground truncate">{alarm.summary}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {formatDistanceToNow(new Date(alarm.started_at), { addSuffix: true })}
+                      {formatApiDistanceToNow(alarm.started_at)}
                     </p>
                   </div>
                   {alarm.status === "OPEN" && (

@@ -2,7 +2,6 @@
 
 import { useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, MapPin, Phone, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePolling } from "@/hooks/use-polling";
 import { getCrew, getRoutePlan } from "@/lib/api/client";
+import { formatApiDistanceToNow } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 const STATUS_COLOR: Record<string, string> = {
@@ -28,12 +28,13 @@ export default function CrewDetailPage() {
 
   const crewFetcher = useCallback(() => getCrew(crewId), [crewId]);
   const { data: crew, isLoading } = usePolling(crewFetcher, 10_000);
+  const assignedRoutePlanId = crew?.assigned_route_plan_id;
 
   const routeFetcher = useCallback(
-    () => crew?.assigned_route_plan_id ? getRoutePlan(crew.assigned_route_plan_id) : Promise.resolve(null),
-    [crew?.assigned_route_plan_id]
+    () => assignedRoutePlanId ? getRoutePlan(assignedRoutePlanId) : Promise.resolve(null),
+    [assignedRoutePlanId]
   );
-  const { data: routePlan } = usePolling(routeFetcher, 30_000, !!crew?.assigned_route_plan_id);
+  const { data: routePlan } = usePolling(routeFetcher, 30_000, !!assignedRoutePlanId);
 
   if (isLoading) {
     return (
@@ -103,7 +104,7 @@ export default function CrewDetailPage() {
                   {crew.current_location.lat.toFixed(5)}, {crew.current_location.lng.toFixed(5)}
                 </p>
                 <p className="text-muted-foreground">
-                  Updated {formatDistanceToNow(new Date(crew.current_location.updated_at), { addSuffix: true })}
+                  Updated {formatApiDistanceToNow(crew.current_location.updated_at)}
                 </p>
                 {crew.current_location.accuracy_m && (
                   <p className="text-muted-foreground">±{crew.current_location.accuracy_m.toFixed(0)} m accuracy</p>

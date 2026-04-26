@@ -2,7 +2,7 @@
 
 export type FillState = "EMPTY" | "NORMAL" | "NEAR_FULL" | "FULL" | "CRITICAL" | "UNKNOWN";
 export type CameraState = "EVERYTHING_OK" | "GARBAGE_DETECTED" | "UNKNOWN" | "CAMERA_FAULT";
-export type DeviceStatus = "ONLINE" | "OFFLINE" | "DEGRADED" | "FAULT" | "UNKNOWN";
+export type DeviceStatus = "ONLINE" | "OFFLINE" | "DEGRADED" | "FAULT" | "MAINTENANCE" | "UNKNOWN";
 export type ContainerStatus = "ACTIVE" | "INACTIVE" | "MAINTENANCE";
 export type ContainerType = "UNDERGROUND" | "ABOVE_GROUND";
 
@@ -90,6 +90,64 @@ export interface Container {
   config_revision?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface DeviceFirmware {
+  mcu_version: string;
+  linux_app_version: string;
+  model_id: string;
+}
+
+export interface DeviceCapabilities {
+  sensors: string[];
+  camera: boolean;
+  offline_buffer: boolean;
+}
+
+export interface DeviceHealth {
+  rssi_dbm?: number;
+  uptime_sec?: number;
+  free_disk_mb?: number;
+  offline_queue_count?: number;
+}
+
+export interface Device {
+  device_id: string;
+  factory_device_id?: string;
+  claim_code?: string;
+  container_id?: string | null;
+  status: DeviceStatus;
+  last_seen_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  firmware?: DeviceFirmware;
+  capabilities?: DeviceCapabilities;
+  health?: DeviceHealth;
+}
+
+export interface DeviceBootstrapPayload {
+  schema_version: "1.0";
+  factory_device_id: string;
+  claim_code: string;
+  firmware: DeviceFirmware;
+  capabilities: DeviceCapabilities;
+}
+
+export interface DeviceBootstrapResponse {
+  accepted: boolean;
+  device_id: string;
+  container_id?: string;
+  device_token: string;
+  server_time: string;
+  config_revision: number;
+  config?: {
+    telemetry_interval_sec: number;
+    heartbeat_interval_sec: number;
+    camera_inference_interval_ms: number;
+    upload_event_images: boolean;
+    thresholds?: Record<string, number>;
+    calibration?: Record<string, number>;
+  };
 }
 
 export interface TelemetryPoint {

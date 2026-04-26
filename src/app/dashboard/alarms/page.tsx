@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Eye, RefreshCw } from "lucide-react";
 import { AlarmEvent } from "@/types";
@@ -37,6 +36,7 @@ import {
   ignoreAlarm,
   resolveAlarm,
 } from "@/lib/api/client";
+import { compareApiDatesDesc, formatApiDateTime, formatApiDistanceToNow } from "@/lib/dates";
 
 export default function AlarmsPage() {
   const router = useRouter();
@@ -80,7 +80,7 @@ export default function AlarmsPage() {
     const sev = { CRITICAL: 0, WARNING: 1, INFO: 2 };
     return (
       (sev[a.severity] ?? 2) - (sev[b.severity] ?? 2) ||
-      new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
+      compareApiDatesDesc(a.started_at, b.started_at)
     );
   });
 
@@ -165,7 +165,7 @@ export default function AlarmsPage() {
                     <TableCell className="text-xs max-w-[200px] truncate">{alarm.summary}</TableCell>
                     <TableCell><AlarmStatusBadge status={alarm.status} /></TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(alarm.started_at), { addSuffix: true })}
+                      {formatApiDistanceToNow(alarm.started_at)}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -204,8 +204,8 @@ export default function AlarmsPage() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div><p className="text-xs text-muted-foreground">Container</p><p>{selectedAlarm.container_id}</p></div>
                   <div><p className="text-xs text-muted-foreground">Status</p><AlarmStatusBadge status={selectedAlarm.status} /></div>
-                  <div><p className="text-xs text-muted-foreground">Started</p><p>{new Date(selectedAlarm.started_at).toLocaleString()}</p></div>
-                  {selectedAlarm.ended_at && <div><p className="text-xs text-muted-foreground">Ended</p><p>{new Date(selectedAlarm.ended_at).toLocaleString()}</p></div>}
+                  <div><p className="text-xs text-muted-foreground">Started</p><p>{formatApiDateTime(selectedAlarm.started_at)}</p></div>
+                  {selectedAlarm.ended_at && <div><p className="text-xs text-muted-foreground">Ended</p><p>{formatApiDateTime(selectedAlarm.ended_at)}</p></div>}
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <Button

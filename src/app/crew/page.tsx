@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
 import {
   CheckCircle,
   MapPin,
@@ -20,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { usePolling } from "@/hooks/use-polling";
 import { getCrews, getRoutePlan } from "@/lib/api/client";
+import { formatApiDistanceToNow } from "@/lib/dates";
 
 const DEMO_CREW_ID = "crew-alpha";
 
@@ -77,7 +77,7 @@ export default function CrewHomePage() {
                 <p className="text-sm font-medium text-green-700 dark:text-green-400">GPS Active</p>
                 {lastSentAt && (
                   <p className="text-xs text-muted-foreground">
-                    Last sent {formatDistanceToNow(new Date(lastSentAt), { addSuffix: true })}
+                    Last sent {formatApiDistanceToNow(lastSentAt)}
                   </p>
                 )}
                 {lastPosition && (

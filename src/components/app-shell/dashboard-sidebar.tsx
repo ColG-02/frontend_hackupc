@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   BarChart3,
   Building2,
+  Cpu,
   Map,
   Settings,
   Trash2,
@@ -17,7 +18,9 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview", icon: BarChart3, exact: true },
+  { href: "/dashboard/map", label: "Map", icon: Map },
   { href: "/dashboard/containers", label: "Containers", icon: Trash2 },
+  { href: "/dashboard/devices", label: "Devices", icon: Cpu },
   { href: "/dashboard/alarms", label: "Alarms", icon: AlertTriangle },
   { href: "/dashboard/routes", label: "Routes", icon: Map },
   { href: "/dashboard/crews", label: "Crews", icon: Users },

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
   useReactTable,
@@ -35,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatApiDistanceToNow } from "@/lib/dates";
 
 const col = createColumnHelper<Container>();
 
@@ -102,7 +102,7 @@ export function ContainersTable({ containers, onCreateTicket }: Props) {
         const v = info.getValue();
         return v ? (
           <span className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(v), { addSuffix: true })}
+            {formatApiDistanceToNow(v)}
           </span>
         ) : (
           <span className="text-xs text-muted-foreground">Never</span>

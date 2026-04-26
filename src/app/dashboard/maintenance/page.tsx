@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { formatDistanceToNow } from "date-fns";
 import { Plus, RefreshCw } from "lucide-react";
 import { MaintenanceTicket } from "@/types";
 import {
@@ -49,6 +48,7 @@ import {
   getMaintenanceTickets,
   updateMaintenanceTicket,
 } from "@/lib/api/client";
+import { formatApiDistanceToNow } from "@/lib/dates";
 
 export default function MaintenancePage() {
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -198,7 +198,7 @@ export default function MaintenancePage() {
                     <TableCell className="text-xs max-w-[200px] truncate">{ticket.description}</TableCell>
                     <TableCell><MaintenanceStatusBadge status={ticket.status} /></TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
+                      {formatApiDistanceToNow(ticket.created_at)}
                     </TableCell>
                   </TableRow>
                 ))

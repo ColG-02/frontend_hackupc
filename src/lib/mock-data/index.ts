@@ -3,6 +3,7 @@ import {
   CleaningCrew,
   Container,
   DashboardSummary,
+  Device,
   MaintenanceTicket,
   RoutePlan,
   TelemetryPoint,
@@ -346,6 +347,25 @@ export const MOCK_CONTAINERS: Container[] = [
     },
   },
 ];
+
+export const MOCK_DEVICES: Device[] = MOCK_CONTAINERS.map((container, index) => ({
+  device_id: container.assigned_device_id ?? `dev-${String(index + 1).padStart(3, "0")}`,
+  factory_device_id: `unoq-${String(index + 1).padStart(3, "0")}`,
+  container_id: container.container_id,
+  status: container.latest_state.device_status ?? "UNKNOWN",
+  last_seen_at: container.latest_state.last_seen_at,
+  created_at: ago(24 * 60),
+  firmware: {
+    mcu_version: "0.1.0",
+    linux_app_version: "0.1.0",
+    model_id: "garbage-classifier-v1",
+  },
+  capabilities: {
+    sensors: ["temperature", "humidity", "light", "ultrasonic", "weight", "tamper"],
+    camera: true,
+    offline_buffer: true,
+  },
+}));
 
 // ── Alarms ─────────────────────────────────────────────────────────────────────
 

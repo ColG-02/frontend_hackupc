@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { MapPin, RefreshCw, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePolling } from "@/hooks/use-polling";
 import { getCrews } from "@/lib/api/client";
+import { formatApiDistanceToNow } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 const STATUS_COLOR: Record<string, string> = {
@@ -80,7 +80,7 @@ export default function CrewsPage() {
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <MapPin className="h-3.5 w-3.5 text-green-500" />
                       <span className="text-xs">
-                        GPS {formatDistanceToNow(new Date(crew.current_location.updated_at), { addSuffix: true })}
+                        GPS {formatApiDistanceToNow(crew.current_location.updated_at)}
                         {crew.current_location.speed_mps && crew.current_location.speed_mps > 0 && (
                           <span> · {(crew.current_location.speed_mps * 3.6).toFixed(0)} km/h</span>
                         )}

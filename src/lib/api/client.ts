@@ -14,6 +14,9 @@ import {
   CrewLocation,
   CrewLocationPayload,
   DashboardSummary,
+  Device,
+  DeviceBootstrapPayload,
+  DeviceBootstrapResponse,
   MaintenanceTicket,
   RoutePlan,
   TelemetryPoint,
@@ -23,6 +26,7 @@ import {
   MOCK_ALARMS,
   MOCK_CONTAINERS,
   MOCK_CREWS,
+  MOCK_DEVICES,
   MOCK_MAINTENANCE_TICKETS,
   MOCK_ROUTE_PLANS,
   buildMockDashboardSummary,
@@ -279,9 +283,48 @@ export async function getContainerTelemetry(
 export async function createContainer(data: Partial<Container>): Promise<{ container_id: string }> {
   if (USE_MOCK) {
     await delay(500);
-    return { container_id: "cont-new-" + Date.now() };
+    const containerId = data.container_id ?? "cont-new-" + Date.now();
+    if (MOCK_CONTAINERS.some((container) => container.container_id === containerId)) {
+      throw new Error("Container ID already exists.");
+    }
+    const container: Container = {
+      container_id: containerId,
+      name: data.name ?? containerId,
+      site_id: data.site_id,
+      address: data.address,
+      location: data.location,
+      status: data.status ?? "ACTIVE",
+      container_type: data.container_type ?? "UNDERGROUND",
+      capacity: data.capacity,
+      assigned_device_id: data.assigned_device_id,
+      latest_state: {
+        fill_state: "UNKNOWN",
+        camera_state: "UNKNOWN",
+        device_status: "UNKNOWN",
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    MOCK_CONTAINERS.unshift(container);
+    return { container_id: containerId };
   }
   return http("/containers", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function createDeviceClaimCode(data: {
+  container_id: string;
+  code: string;
+}): Promise<{ created?: boolean; container_id: string }> {
+  if (USE_MOCK) {
+    await delay(300);
+    const container = MOCK_CONTAINERS.find((item) => item.container_id === data.container_id);
+    if (!container) throw new Error("Container not found");
+    return { created: true, container_id: data.container_id };
+  }
+  return http("/devices/claim-codes", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function updateContainer(
@@ -292,6 +335,79 @@ export async function updateContainer(
   await http(`/containers/${containerId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
+  });
+}
+
+// Device provisioning
+
+export async function getDevices(): Promise<{ items: Device[]; total: number }> {
+  if (USE_MOCK) {
+    await delay(300);
+    return { items: [...MOCK_DEVICES], total: MOCK_DEVICES.length };
+  }
+  return http<{ items: Device[]; total: number }>("/devices");
+}
+
+export async function bootstrapDevice(
+  data: DeviceBootstrapPayload
+): Promise<DeviceBootstrapResponse> {
+  if (USE_MOCK) {
+    await delay(500);
+    if (MOCK_DEVICES.some((device) => device.factory_device_id === data.factory_device_id)) {
+      throw new Error("This factory device ID has already been claimed.");
+    }
+    const sequence = String(MOCK_DEVICES.length + 1).padStart(3, "0");
+    const deviceId = `cont-${Date.now().toString().slice(-6)}`;
+    const device: Device = {
+      device_id: deviceId,
+      factory_device_id: data.factory_device_id,
+      container_id: null,
+      status: "UNKNOWN",
+      created_at: new Date().toISOString(),
+      firmware: data.firmware,
+      capabilities: data.capabilities,
+    };
+    MOCK_DEVICES.unshift(device);
+    return {
+      accepted: true,
+      device_id: deviceId,
+      container_id: `bin-new-${sequence}`,
+      device_token: `dev-token-${sequence}`,
+      server_time: new Date().toISOString(),
+      config_revision: 1,
+      config: {
+        telemetry_interval_sec: 60,
+        heartbeat_interval_sec: 60,
+        camera_inference_interval_ms: 2000,
+        upload_event_images: true,
+      },
+    };
+  }
+  return http<DeviceBootstrapResponse>("/device/bootstrap", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function assignDeviceToContainer(
+  deviceId: string,
+  containerId: string
+): Promise<{ assigned: boolean; device_id: string; container_id: string }> {
+  if (USE_MOCK) {
+    await delay(300);
+    const device = MOCK_DEVICES.find((item) => item.device_id === deviceId);
+    const container = MOCK_CONTAINERS.find((item) => item.container_id === containerId);
+    if (!device) throw new Error("Device not found");
+    if (!container) throw new Error("Container not found");
+    device.container_id = containerId;
+    device.updated_at = new Date().toISOString();
+    container.assigned_device_id = deviceId;
+    container.updated_at = device.updated_at;
+    return { assigned: true, device_id: deviceId, container_id: containerId };
+  }
+  return http(`/devices/${deviceId}/assign`, {
+    method: "POST",
+    body: JSON.stringify({ container_id: containerId }),
   });
 }
 

@@ -1,12 +1,12 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { CleaningCrew } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatApiDistanceToNow } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 const STATUS_COLOR: Record<string, string> = {
@@ -75,9 +75,7 @@ export function CrewStatusPanel({ crews, isLoading }: Props) {
                       {crew.current_location && (
                         <span>
                           {" · "}GPS{" "}
-                          {formatDistanceToNow(new Date(crew.current_location.updated_at), {
-                            addSuffix: true,
-                          })}
+                          {formatApiDistanceToNow(crew.current_location.updated_at)}
                         </span>
                       )}
                     </p>

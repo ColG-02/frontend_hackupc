@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Calendar, CheckCircle, Clock, MapPin, Plus, RefreshCw, Truck } from "lucide-react";
 import { RoutePlan } from "@/types";
@@ -13,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { usePolling } from "@/hooks/use-polling";
 import { dispatchRoutePlan, getRoutePlans } from "@/lib/api/client";
+import { formatApiDistanceToNow, parseApiDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 const STATUS_COLOR: Record<string, string> = {
@@ -82,10 +82,10 @@ export default function RoutesPage() {
                         Route Plan — {plan.date}
                       </CardTitle>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {plan.dispatched_at && !isNaN(Date.parse(plan.dispatched_at))
-                          ? `Dispatched ${formatDistanceToNow(new Date(plan.dispatched_at), { addSuffix: true })}`
-                          : plan.created_at && !isNaN(Date.parse(plan.created_at))
-                          ? `Created ${formatDistanceToNow(new Date(plan.created_at), { addSuffix: true })}`
+                        {plan.dispatched_at && !isNaN(parseApiDate(plan.dispatched_at).getTime())
+                          ? `Dispatched ${formatApiDistanceToNow(plan.dispatched_at)}`
+                          : plan.created_at && !isNaN(parseApiDate(plan.created_at).getTime())
+                          ? `Created ${formatApiDistanceToNow(plan.created_at)}`
                           : `Plan for ${plan.date}`}
                       </p>
                     </div>
