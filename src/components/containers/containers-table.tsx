@@ -88,10 +88,10 @@ export function ContainersTable({ containers, onCreateTicket, onDeviceConfigSave
       cell: (info) =>
         info.getValue() ? (
           <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-600">
-            🔥 Yes
+            Yes
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground">—</span>
+          <span className="text-xs text-muted-foreground">-</span>
         ),
     }),
     col.accessor("latest_state.device_status", {
@@ -180,19 +180,25 @@ export function ContainersTable({ containers, onCreateTicket, onDeviceConfigSave
               </TableCell>
             </TableRow>
           ) : (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="cursor-pointer"
-                onClick={() => router.push(`/dashboard/containers/${row.original.container_id}`)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="py-2">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+            table.getRowModel().rows.map((row) => {
+              const detailHref = `/dashboard/containers/${row.original.container_id}`;
+
+              return (
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(detailHref)}
+                  onFocus={() => router.prefetch(detailHref)}
+                  onMouseEnter={() => router.prefetch(detailHref)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="py-2">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

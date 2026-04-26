@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -13,15 +14,6 @@ import {
   Wifi,
   Zap,
 } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import {
   CameraStateBadge,
   DeviceStatusBadge,
@@ -38,7 +30,38 @@ import {
   getContainer,
   getContainerTelemetry,
 } from "@/lib/api/client";
-import { formatApiDistanceToNow, formatApiTime } from "@/lib/dates";
+import { formatApiDistanceToNow } from "@/lib/dates";
+
+const ContainerTelemetryCharts = dynamic(
+  () => import("@/components/containers/container-telemetry-charts"),
+  {
+    ssr: false,
+    loading: () => <ChartCardsSkeleton />,
+  }
+);
+
+function ChartCardsSkeleton() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Card>
+        <CardHeader className="pb-2">
+          <Skeleton className="h-4 w-24" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[180px] w-full" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <Skeleton className="h-4 w-32" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[180px] w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function ContainerDetailPage() {
   const params = useParams<{ containerId: string }>();
@@ -57,7 +80,7 @@ export default function ContainerDetailPage() {
   );
 
   const { data: container, isLoading, refresh } = usePolling(fetchContainer, 5_000);
-  const { data: telemetry } = usePolling(fetchTelemetry, 60_000);
+  const { data: telemetry, isLoading: isTelemetryLoading } = usePolling(fetchTelemetry, 60_000);
   const { data: alarms } = usePolling(fetchAlarms, 15_000);
 
   if (isLoading) {
@@ -86,11 +109,6 @@ export default function ContainerDetailPage() {
   }
 
   const ls = container.latest_state;
-  const chartData = (telemetry ?? []).map((p) => ({
-    time: formatApiTime(p.ts),
-    fill: p.fused_fill_pct,
-    temp: p.temperature_c,
-  }));
 
   return (
     <div className="space-y-4">
@@ -165,41 +183,11 @@ export default function ContainerDetailPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Fill % (24h)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="time" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(v) => [`${v}%`, "Fill"]} />
-                <Line type="monotone" dataKey="fill" stroke="#ef4444" dot={false} strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Temperature (24h)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="time" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(v) => [`${v}°C`, "Temp"]} />
-                <Line type="monotone" dataKey="temp" stroke="#f59e0b" dot={false} strokeWidth={2} name="Temp (°C)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
+      {isTelemetryLoading ? (
+        <ChartCardsSkeleton />
+      ) : (
+        <ContainerTelemetryCharts telemetry={telemetry ?? []} />
+      )}
       {/* Technical details */}
       <Card>
         <CardHeader className="pb-2">
