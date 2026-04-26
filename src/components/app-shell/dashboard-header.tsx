@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LogOut, Search, User } from "lucide-react";
+import { Bell, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/context";
 import { ThemeToggle } from "./theme-toggle";
@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
@@ -39,16 +38,6 @@ export function DashboardHeader({ openAlarms = 0 }: Props) {
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-background px-4">
-      {/* Search */}
-      <div className="relative flex-1 max-w-xs">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search containers, crews…"
-          className="pl-8 h-8 text-sm"
-          aria-label="Search"
-        />
-      </div>
-
       <div className="ml-auto flex items-center gap-2">
         {/* Alarm bell */}
         <Button variant="ghost" size="icon" className="relative" onClick={() => router.push("/dashboard/alarms")}>

@@ -34,7 +34,7 @@ export function DashboardSidebar() {
   return (
     <aside className="flex h-full w-56 flex-col border-r bg-sidebar">
       {/* Logo */}
-      <div className="flex items-center gap-2 border-b px-4 py-4">
+      <div className="flex h-14 items-center gap-2 border-b px-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
           <Building2 className="h-4 w-4 text-primary-foreground" />
         </div>
