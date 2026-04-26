@@ -98,7 +98,7 @@ export default function DashboardMapPage() {
         </Button>
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid min-h-0 min-w-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="min-h-[420px] overflow-hidden rounded-lg border bg-card">
           {containers.isLoading ? (
             <Skeleton className="h-full w-full rounded-none" />
@@ -107,7 +107,7 @@ export default function DashboardMapPage() {
           )}
         </section>
 
-        <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+        <aside className="flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto overflow-x-hidden pr-1">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">

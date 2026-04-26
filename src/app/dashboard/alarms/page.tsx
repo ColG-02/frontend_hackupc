@@ -16,6 +16,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -212,46 +213,65 @@ export default function AlarmsPage() {
 
       {/* Alarm detail sheet */}
       <Sheet open={!!selectedAlarm} onOpenChange={(o) => !o && setSelectedAlarm(null)}>
-        <SheetContent>
+        <SheetContent className="w-[calc(100vw-1rem)] overflow-hidden sm:max-w-md">
           {selectedAlarm && (
             <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
+              <SheetHeader className="border-b px-5 py-4 pr-12">
+                <SheetTitle className="flex min-w-0 flex-wrap items-center gap-2 text-sm leading-6">
                   <AlarmSeverityBadge severity={selectedAlarm.severity} />
-                  {selectedAlarm.type}
+                  <span className="min-w-0 break-words font-mono text-xs">
+                    {selectedAlarm.type}
+                  </span>
                 </SheetTitle>
               </SheetHeader>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Summary</p>
-                  <p className="text-sm">{selectedAlarm.summary}</p>
+              <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
+                <div className="rounded-lg border bg-muted/30 p-3">
+                  <p className="mb-1 text-xs font-medium text-muted-foreground">Summary</p>
+                  <p className="break-words text-sm leading-5">{selectedAlarm.summary}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div><p className="text-xs text-muted-foreground">Container</p><p>{selectedAlarm.container_id}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Status</p><AlarmStatusBadge status={selectedAlarm.status} /></div>
-                  <div><p className="text-xs text-muted-foreground">Started</p><p>{formatApiDateTime(selectedAlarm.started_at)}</p></div>
-                  {selectedAlarm.ended_at && <div><p className="text-xs text-muted-foreground">Ended</p><p>{formatApiDateTime(selectedAlarm.ended_at)}</p></div>}
+                <div className="grid gap-3 text-sm sm:grid-cols-2">
+                  <div className="min-w-0 rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Container</p>
+                    <p className="mt-1 truncate font-mono text-xs">{selectedAlarm.container_id}</p>
+                  </div>
+                  <div className="min-w-0 rounded-lg border p-3">
+                    <p className="mb-1 text-xs text-muted-foreground">Status</p>
+                    <AlarmStatusBadge status={selectedAlarm.status} />
+                  </div>
+                  <div className="min-w-0 rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Started</p>
+                    <p className="mt-1 break-words text-xs">{formatApiDateTime(selectedAlarm.started_at)}</p>
+                  </div>
+                  {selectedAlarm.ended_at && (
+                    <div className="min-w-0 rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Ended</p>
+                      <p className="mt-1 break-words text-xs">{formatApiDateTime(selectedAlarm.ended_at)}</p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-2 flex-wrap">
+              </div>
+              <SheetFooter className="border-t bg-background/95 px-5 py-4">
+                <div className="grid w-full gap-2 sm:grid-cols-2">
                   <Button
                     size="sm"
                     variant="outline"
+                    className="w-full"
                     onClick={() => router.push(`/dashboard/containers/${selectedAlarm.container_id}`)}
                   >
                     View container
                   </Button>
                   {selectedAlarm.status === "OPEN" && (
                     <>
-                      <Button size="sm" onClick={() => handleAck(selectedAlarm)}>Acknowledge</Button>
-                      <Button size="sm" variant="secondary" onClick={() => handleResolve(selectedAlarm)}>Resolve</Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleIgnore(selectedAlarm)}>Ignore</Button>
+                      <Button size="sm" className="w-full" onClick={() => handleAck(selectedAlarm)}>Acknowledge</Button>
+                      <Button size="sm" className="w-full" variant="secondary" onClick={() => handleResolve(selectedAlarm)}>Resolve</Button>
+                      <Button size="sm" className="w-full" variant="ghost" onClick={() => handleIgnore(selectedAlarm)}>Ignore</Button>
                     </>
                   )}
                   {selectedAlarm.status === "ACKNOWLEDGED" && (
-                    <Button size="sm" onClick={() => handleResolve(selectedAlarm)}>Resolve</Button>
+                    <Button size="sm" className="w-full" onClick={() => handleResolve(selectedAlarm)}>Resolve</Button>
                   )}
                 </div>
-              </div>
+              </SheetFooter>
             </>
           )}
         </SheetContent>

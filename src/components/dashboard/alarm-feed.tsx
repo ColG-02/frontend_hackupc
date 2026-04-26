@@ -52,11 +52,11 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
   );
 
   return (
-    <Card>
+    <Card className="min-w-0">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold">Active Alarms</CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="min-w-0 p-0">
         {isLoading && (
           <div className="space-y-2 p-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -69,8 +69,8 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
             No active alarms
           </div>
         )}
-        <ul className="divide-y">
-          {alarms
+        <ul className="min-w-0 divide-y">
+          {[...alarms]
             .sort((a, b) => {
               const sev = { CRITICAL: 0, WARNING: 1, INFO: 2 };
               return (
@@ -82,29 +82,29 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
             .map((alarm) => (
               <li
                 key={alarm.event_id}
-                className="cursor-pointer px-4 py-3 hover:bg-muted/50 transition-colors"
+                className="min-w-0 cursor-pointer px-3 py-3 transition-colors hover:bg-muted/50 sm:px-4"
                 onClick={() => router.push(`/dashboard/alarms`)}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                  <div className="min-w-0">
+                    <div className="mb-1 flex min-w-0 flex-wrap items-center gap-1.5">
                       <AlarmSeverityBadge severity={alarm.severity} />
                       <AlarmStatusBadge status={alarm.status} />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">
                         {alarm.container_id}
                       </span>
                     </div>
-                    <p className="text-xs text-foreground truncate">{alarm.summary}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="min-w-0 truncate text-xs text-foreground">{alarm.summary}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       {formatApiDistanceToNow(alarm.started_at)}
                     </p>
                   </div>
                   {alarm.status === "OPEN" && (
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex shrink-0 flex-wrap gap-1 sm:justify-end">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-6 px-2 text-xs"
+                        className="h-6 min-w-12 px-2 text-xs"
                         onClick={(e) => handleAck(e, alarm.event_id)}
                       >
                         Ack
@@ -112,7 +112,7 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-6 px-2 text-xs"
+                        className="h-6 min-w-16 px-2 text-xs"
                         onClick={(e) => handleResolve(e, alarm.event_id)}
                       >
                         Resolve
@@ -131,7 +131,7 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
               className="w-full text-xs"
               onClick={() => router.push("/dashboard/alarms")}
             >
-              View all alarms →
+              View all alarms
             </Button>
           </div>
         )}
