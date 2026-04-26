@@ -74,7 +74,7 @@ export default function ContainersPage() {
     () => getContainers({ status: statusFilter !== "all" ? statusFilter : undefined }),
     [statusFilter]
   );
-  const { data, isLoading, refresh } = usePolling(fetcher, 30_000);
+  const { data, isLoading, refresh } = usePolling(fetcher, 10_000);
 
   const containers = (data?.items ?? []).filter((c: Container) => {
     if (fillFilter !== "all" && c.latest_state.fill_state !== fillFilter) return false;

@@ -56,7 +56,7 @@ export default function ContainerDetailPage() {
     [containerId]
   );
 
-  const { data: container, isLoading, refresh } = usePolling(fetchContainer, 15_000);
+  const { data: container, isLoading, refresh } = usePolling(fetchContainer, 5_000);
   const { data: telemetry } = usePolling(fetchTelemetry, 60_000);
   const { data: alarms } = usePolling(fetchAlarms, 15_000);
 
