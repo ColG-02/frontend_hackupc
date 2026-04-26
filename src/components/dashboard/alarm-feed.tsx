@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { acknowledgeAlarm, resolveAlarm } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/context";
 import { compareApiDatesDesc, formatApiDistanceToNow } from "@/lib/dates";
+import { toast } from "sonner";
 
 interface Props {
   alarms: AlarmEvent[];
@@ -18,23 +20,35 @@ interface Props {
 
 export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
   const router = useRouter();
+  const { user } = useAuth();
+  const actor = user?.email ?? user?.name ?? "unknown";
 
   const handleAck = useCallback(
     async (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
-      await acknowledgeAlarm(id);
-      onRefresh?.();
+      try {
+        await acknowledgeAlarm(id, actor);
+        toast.success("Alarm acknowledged");
+        onRefresh?.();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Could not acknowledge alarm");
+      }
     },
-    [onRefresh]
+    [actor, onRefresh]
   );
 
   const handleResolve = useCallback(
     async (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
-      await resolveAlarm(id);
-      onRefresh?.();
+      try {
+        await resolveAlarm(id, actor);
+        toast.success("Alarm resolved");
+        onRefresh?.();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Could not resolve alarm");
+      }
     },
-    [onRefresh]
+    [actor, onRefresh]
   );
 
   return (
