@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useCallback, useMemo, useState } from "react";
-import { LinkIcon, RefreshCw } from "lucide-react";
+import { LinkIcon, RefreshCw, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Container, Device } from "@/types";
+import { DeviceConfigDialog } from "@/components/devices/device-config-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -168,6 +169,7 @@ export default function DevicesPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Firmware</TableHead>
                 <TableHead>Last seen</TableHead>
+                <TableHead className="text-right">Config</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -181,11 +183,24 @@ export default function DevicesPage() {
                   </TableCell>
                   <TableCell>{device.firmware?.linux_app_version ?? "-"}</TableCell>
                   <TableCell>{formatDate(device.last_seen_at)}</TableCell>
+                  <TableCell className="text-right">
+                    <DeviceConfigDialog
+                      deviceId={device.device_id}
+                      initialConfig={device.config}
+                      onSaved={refresh}
+                      trigger={
+                        <Button variant="outline" size="sm">
+                          <Settings2 className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      }
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
               {!devices.length && !isLoading && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
                     No registered devices yet
                   </TableCell>
                 </TableRow>

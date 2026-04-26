@@ -8,6 +8,7 @@ import {
   RoutePlan,
   TelemetryPoint,
 } from "@/types";
+import { cloneDeviceConfig, DEFAULT_DEVICE_CONFIG } from "@/lib/device-config";
 
 const now = new Date();
 const ago = (minutes: number) =>
@@ -355,6 +356,8 @@ export const MOCK_DEVICES: Device[] = MOCK_CONTAINERS.map((container, index) => 
   status: container.latest_state.device_status ?? "UNKNOWN",
   last_seen_at: container.latest_state.last_seen_at,
   created_at: ago(24 * 60),
+  config_revision: container.config_revision ?? 1,
+  config: cloneDeviceConfig(DEFAULT_DEVICE_CONFIG),
   firmware: {
     mcu_version: "0.1.0",
     linux_app_version: "0.1.0",

@@ -367,7 +367,7 @@ export default function ContainersPage() {
           ))}
         </div>
       ) : (
-        <ContainersTable containers={containers} />
+        <ContainersTable containers={containers} onDeviceConfigSaved={refresh} />
       )}
     </div>
   );

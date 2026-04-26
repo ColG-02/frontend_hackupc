@@ -111,6 +111,28 @@ export interface DeviceHealth {
   offline_queue_count?: number;
 }
 
+export interface DeviceConfig {
+  telemetry_interval_sec: number;
+  heartbeat_interval_sec: number;
+  camera_inference_interval_ms: number;
+  upload_event_images: boolean;
+  thresholds: {
+    near_full_pct: number;
+    full_pct: number;
+    critical_pct: number;
+    garbage_confidence: number;
+    garbage_frames_required: number;
+    garbage_window_frames: number;
+    clear_frames_required: number;
+  };
+  calibration: {
+    empty_distance_cm: number;
+    full_distance_cm: number;
+    empty_weight_kg: number;
+    max_payload_kg: number;
+  };
+}
+
 export interface Device {
   device_id: string;
   factory_device_id?: string;
@@ -120,6 +142,8 @@ export interface Device {
   last_seen_at?: string;
   created_at?: string;
   updated_at?: string;
+  config_revision?: number;
+  config?: DeviceConfig;
   firmware?: DeviceFirmware;
   capabilities?: DeviceCapabilities;
   health?: DeviceHealth;
@@ -140,14 +164,7 @@ export interface DeviceBootstrapResponse {
   device_token: string;
   server_time: string;
   config_revision: number;
-  config?: {
-    telemetry_interval_sec: number;
-    heartbeat_interval_sec: number;
-    camera_inference_interval_ms: number;
-    upload_event_images: boolean;
-    thresholds?: Record<string, number>;
-    calibration?: Record<string, number>;
-  };
+  config?: DeviceConfig;
 }
 
 export interface TelemetryPoint {

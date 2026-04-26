@@ -17,6 +17,7 @@ import {
   Device,
   DeviceBootstrapPayload,
   DeviceBootstrapResponse,
+  DeviceConfig,
   MaintenanceTicket,
   RoutePlan,
   TelemetryPoint,
@@ -32,6 +33,7 @@ import {
   buildMockDashboardSummary,
   generateMockTelemetry,
 } from "@/lib/mock-data";
+import { cloneDeviceConfig, DEFAULT_DEVICE_CONFIG } from "@/lib/device-config";
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_API !== "false";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -91,6 +93,7 @@ async function http<T>(
 // ── Mock delay ─────────────────────────────────────────────────────────────────
 
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
+const MOCK_DEVICE_CONFIGS = new Map<string, DeviceConfig>();
 
 // ── Demo users ─────────────────────────────────────────────────────────────────
 
@@ -343,7 +346,15 @@ export async function updateContainer(
 export async function getDevices(): Promise<{ items: Device[]; total: number }> {
   if (USE_MOCK) {
     await delay(300);
-    return { items: [...MOCK_DEVICES], total: MOCK_DEVICES.length };
+    return {
+      items: MOCK_DEVICES.map((device) => ({
+        ...device,
+        config: cloneDeviceConfig(
+          MOCK_DEVICE_CONFIGS.get(device.device_id) ?? device.config ?? DEFAULT_DEVICE_CONFIG
+        ),
+      })),
+      total: MOCK_DEVICES.length,
+    };
   }
   return http<{ items: Device[]; total: number }>("/devices");
 }
@@ -364,6 +375,8 @@ export async function bootstrapDevice(
       container_id: null,
       status: "UNKNOWN",
       created_at: new Date().toISOString(),
+      config_revision: 1,
+      config: cloneDeviceConfig(DEFAULT_DEVICE_CONFIG),
       firmware: data.firmware,
       capabilities: data.capabilities,
     };
@@ -375,12 +388,7 @@ export async function bootstrapDevice(
       device_token: `dev-token-${sequence}`,
       server_time: new Date().toISOString(),
       config_revision: 1,
-      config: {
-        telemetry_interval_sec: 60,
-        heartbeat_interval_sec: 60,
-        camera_inference_interval_ms: 2000,
-        upload_event_images: true,
-      },
+      config: cloneDeviceConfig(DEFAULT_DEVICE_CONFIG),
     };
   }
   return http<DeviceBootstrapResponse>("/device/bootstrap", {
@@ -412,6 +420,36 @@ export async function assignDeviceToContainer(
 }
 
 // ── Alarms ─────────────────────────────────────────────────────────────────────
+
+export async function updateDeviceConfig(
+  deviceId: string,
+  config: DeviceConfig
+): Promise<{ updated: boolean; device_id: string; config_revision: number }> {
+  if (USE_MOCK) {
+    await delay(400);
+    const device = MOCK_DEVICES.find((item) => item.device_id === deviceId);
+    if (!device) throw new Error("Device not found");
+
+    const nextRevision = (device.config_revision ?? 1) + 1;
+    const nextConfig = cloneDeviceConfig(config);
+    MOCK_DEVICE_CONFIGS.set(deviceId, nextConfig);
+    device.config = nextConfig;
+    device.config_revision = nextRevision;
+    device.updated_at = new Date().toISOString();
+
+    const container = MOCK_CONTAINERS.find((item) => item.assigned_device_id === deviceId);
+    if (container) {
+      container.config_revision = nextRevision;
+      container.updated_at = device.updated_at;
+    }
+
+    return { updated: true, device_id: deviceId, config_revision: nextRevision };
+  }
+  return http(`/devices/${deviceId}/config`, {
+    method: "PATCH",
+    body: JSON.stringify(config),
+  });
+}
 
 export interface AlarmFilters {
   severity?: string;

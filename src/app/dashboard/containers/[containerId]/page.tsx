@@ -7,6 +7,7 @@ import {
   Droplets,
   Flame,
   RefreshCw,
+  Settings2,
   Thermometer,
   Trash2,
   Wifi,
@@ -26,6 +27,7 @@ import {
   DeviceStatusBadge,
   FillStateBadge,
 } from "@/components/containers/container-state-badge";
+import { DeviceConfigDialog } from "@/components/devices/device-config-dialog";
 import { AlarmSeverityBadge, AlarmStatusBadge } from "@/components/alarms/alarm-severity-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -119,10 +121,24 @@ export default function ContainerDetailPage() {
             </p>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={refresh}>
-          <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          {container.assigned_device_id && (
+            <DeviceConfigDialog
+              deviceId={container.assigned_device_id}
+              onSaved={refresh}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <Settings2 className="mr-2 h-3.5 w-3.5" />
+                  Device config
+                </Button>
+              }
+            />
+          )}
+          <Button variant="outline" size="sm" onClick={refresh}>
+            <RefreshCw className="mr-2 h-3.5 w-3.5" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Live state cards */}

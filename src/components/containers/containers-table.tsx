@@ -11,8 +11,9 @@ import {
   createColumnHelper,
   SortingState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Eye, MoreHorizontal, Wrench } from "lucide-react";
+import { ArrowUpDown, Eye, MoreHorizontal, Settings2, Wrench } from "lucide-react";
 import { Container } from "@/types";
+import { DeviceConfigDialog } from "@/components/devices/device-config-dialog";
 import {
   CameraStateBadge,
   DeviceStatusBadge,
@@ -41,9 +42,10 @@ const col = createColumnHelper<Container>();
 interface Props {
   containers: Container[];
   onCreateTicket?: (container: Container) => void;
+  onDeviceConfigSaved?: () => void | Promise<void>;
 }
 
-export function ContainersTable({ containers, onCreateTicket }: Props) {
+export function ContainersTable({ containers, onCreateTicket, onDeviceConfigSaved }: Props) {
   const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -112,21 +114,34 @@ export function ContainersTable({ containers, onCreateTicket }: Props) {
     col.display({
       id: "actions",
       cell: (info) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent transition-colors">
-            <MoreHorizontal className="h-4 w-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/dashboard/containers/${info.row.original.container_id}`)}>
-              <Eye className="mr-2 h-4 w-4" />
-              View details
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onCreateTicket?.(info.row.original)}>
-              <Wrench className="mr-2 h-4 w-4" />
-              Create ticket
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex justify-end gap-1" onClick={(event) => event.stopPropagation()}>
+          {info.row.original.assigned_device_id && (
+            <DeviceConfigDialog
+              deviceId={info.row.original.assigned_device_id}
+              onSaved={onDeviceConfigSaved}
+              trigger={
+                <Button variant="ghost" size="icon-sm" title="Configure device">
+                  <Settings2 className="h-4 w-4" />
+                </Button>
+              }
+            />
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent transition-colors">
+              <MoreHorizontal className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => router.push(`/dashboard/containers/${info.row.original.container_id}`)}>
+                <Eye className="mr-2 h-4 w-4" />
+                View details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onCreateTicket?.(info.row.original)}>
+                <Wrench className="mr-2 h-4 w-4" />
+                Create ticket
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       ),
     }),
   ];
