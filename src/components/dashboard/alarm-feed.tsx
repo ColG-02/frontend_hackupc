@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlarmEvent } from "@/types";
 import { AlarmSeverityBadge, AlarmStatusBadge } from "@/components/alarms/alarm-severity-badge";
+import { AlarmDetailSheet } from "@/components/alarms/alarm-detail-sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,6 +22,7 @@ interface Props {
 export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
   const router = useRouter();
   const { user } = useAuth();
+  const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
   const actor = user?.email ?? user?.name ?? "unknown";
 
   const handleAck = useCallback(
@@ -83,7 +85,7 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
               <li
                 key={alarm.event_id}
                 className="min-w-0 cursor-pointer px-3 py-3 transition-colors hover:bg-muted/50 sm:px-4"
-                onClick={() => router.push(`/dashboard/alarms`)}
+                onClick={() => setSelectedAlarm(alarm)}
               >
                 <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                   <div className="min-w-0">
@@ -136,6 +138,12 @@ export function AlarmFeed({ alarms, isLoading, onRefresh }: Props) {
           </div>
         )}
       </CardContent>
+
+      <AlarmDetailSheet
+        alarm={selectedAlarm}
+        onClose={() => setSelectedAlarm(null)}
+        onRefresh={() => onRefresh?.()}
+      />
     </Card>
   );
 }

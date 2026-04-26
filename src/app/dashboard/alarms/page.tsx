@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
 import { CheckCheck, Eye, RefreshCw } from "lucide-react";
 import { AlarmEvent } from "@/types";
 import { AlarmSeverityBadge, AlarmStatusBadge } from "@/components/alarms/alarm-severity-badge";
+import { AlarmDetailSheet } from "@/components/alarms/alarm-detail-sheet";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,13 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -34,14 +27,11 @@ import { usePolling } from "@/hooks/use-polling";
 import {
   acknowledgeAlarm,
   getAlarms,
-  ignoreAlarm,
-  resolveAlarm,
 } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/context";
-import { compareApiDatesDesc, formatApiDateTime, formatApiDistanceToNow } from "@/lib/dates";
+import { compareApiDatesDesc, formatApiDistanceToNow } from "@/lib/dates";
 
 export default function AlarmsPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -67,24 +57,9 @@ export default function AlarmsPage() {
       await acknowledgeAlarm(alarm.event_id, actor);
       toast.success("Alarm acknowledged");
       refresh();
-      setSelectedAlarm(null);
     } finally {
       setPendingAckId(null);
     }
-  };
-
-  const handleResolve = async (alarm: AlarmEvent) => {
-    await resolveAlarm(alarm.event_id, actor);
-    toast.success("Alarm resolved");
-    refresh();
-    setSelectedAlarm(null);
-  };
-
-  const handleIgnore = async (alarm: AlarmEvent) => {
-    await ignoreAlarm(alarm.event_id, actor);
-    toast.info("Alarm ignored");
-    refresh();
-    setSelectedAlarm(null);
   };
 
   const sorted = [...(alarms ?? [])].sort((a, b) => {
@@ -211,71 +186,11 @@ export default function AlarmsPage() {
         </div>
       )}
 
-      {/* Alarm detail sheet */}
-      <Sheet open={!!selectedAlarm} onOpenChange={(o) => !o && setSelectedAlarm(null)}>
-        <SheetContent className="w-[calc(100vw-1rem)] overflow-hidden sm:max-w-md">
-          {selectedAlarm && (
-            <>
-              <SheetHeader className="border-b px-5 py-4 pr-12">
-                <SheetTitle className="flex min-w-0 flex-wrap items-center gap-2 text-sm leading-6">
-                  <AlarmSeverityBadge severity={selectedAlarm.severity} />
-                  <span className="min-w-0 break-words font-mono text-xs">
-                    {selectedAlarm.type}
-                  </span>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
-                <div className="rounded-lg border bg-muted/30 p-3">
-                  <p className="mb-1 text-xs font-medium text-muted-foreground">Summary</p>
-                  <p className="break-words text-sm leading-5">{selectedAlarm.summary}</p>
-                </div>
-                <div className="grid gap-3 text-sm sm:grid-cols-2">
-                  <div className="min-w-0 rounded-lg border p-3">
-                    <p className="text-xs text-muted-foreground">Container</p>
-                    <p className="mt-1 truncate font-mono text-xs">{selectedAlarm.container_id}</p>
-                  </div>
-                  <div className="min-w-0 rounded-lg border p-3">
-                    <p className="mb-1 text-xs text-muted-foreground">Status</p>
-                    <AlarmStatusBadge status={selectedAlarm.status} />
-                  </div>
-                  <div className="min-w-0 rounded-lg border p-3">
-                    <p className="text-xs text-muted-foreground">Started</p>
-                    <p className="mt-1 break-words text-xs">{formatApiDateTime(selectedAlarm.started_at)}</p>
-                  </div>
-                  {selectedAlarm.ended_at && (
-                    <div className="min-w-0 rounded-lg border p-3">
-                      <p className="text-xs text-muted-foreground">Ended</p>
-                      <p className="mt-1 break-words text-xs">{formatApiDateTime(selectedAlarm.ended_at)}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <SheetFooter className="border-t bg-background/95 px-5 py-4">
-                <div className="grid w-full gap-2 sm:grid-cols-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.push(`/dashboard/containers/${selectedAlarm.container_id}`)}
-                  >
-                    View container
-                  </Button>
-                  {selectedAlarm.status === "OPEN" && (
-                    <>
-                      <Button size="sm" className="w-full" onClick={() => handleAck(selectedAlarm)}>Acknowledge</Button>
-                      <Button size="sm" className="w-full" variant="secondary" onClick={() => handleResolve(selectedAlarm)}>Resolve</Button>
-                      <Button size="sm" className="w-full" variant="ghost" onClick={() => handleIgnore(selectedAlarm)}>Ignore</Button>
-                    </>
-                  )}
-                  {selectedAlarm.status === "ACKNOWLEDGED" && (
-                    <Button size="sm" className="w-full" onClick={() => handleResolve(selectedAlarm)}>Resolve</Button>
-                  )}
-                </div>
-              </SheetFooter>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <AlarmDetailSheet
+        alarm={selectedAlarm}
+        onClose={() => setSelectedAlarm(null)}
+        onRefresh={refresh}
+      />
     </div>
   );
 }
