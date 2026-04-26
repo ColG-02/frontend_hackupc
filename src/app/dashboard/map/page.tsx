@@ -17,7 +17,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePolling } from "@/hooks/use-polling";
 import { getAlarms, getContainers, getCrews } from "@/lib/api/client";
-import { Container } from "@/types";
 
 function StatRow({
   label,
@@ -54,22 +53,6 @@ function StatRow({
   );
 }
 
-function getPriorityContainers(containers: Container[]) {
-  return [...containers]
-    .filter((container) => {
-      const state = container.latest_state;
-      return (
-        state.fill_state === "CRITICAL" ||
-        state.fill_state === "FULL" ||
-        state.camera_state === "GARBAGE_DETECTED" ||
-        state.flame_detected ||
-        state.device_status === "OFFLINE" ||
-        state.device_status === "FAULT"
-      );
-    })
-    .sort((a, b) => (b.latest_state.fused_fill_pct ?? 0) - (a.latest_state.fused_fill_pct ?? 0))
-    .slice(0, 6);
-}
 
 export default function DashboardMapPage() {
   const fetchContainers = useCallback(() => getContainers().then((result) => result.items), []);
@@ -97,8 +80,6 @@ export default function DashboardMapPage() {
     (container) => container.latest_state.camera_state === "GARBAGE_DETECTED"
   ).length;
   const flameDetected = allContainers.filter((container) => container.latest_state.flame_detected).length;
-  const priorityContainers = getPriorityContainers(allContainers);
-
   const handleRefresh = () => {
     containers.refresh();
     crews.refresh();
@@ -110,7 +91,6 @@ export default function DashboardMapPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Operations Map</h1>
-          <p className="text-sm text-muted-foreground">Belgrade live container and crew overview</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh}>
           <RefreshCw className="mr-2 h-3.5 w-3.5" />
@@ -148,51 +128,6 @@ export default function DashboardMapPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Priority Containers</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {priorityContainers.length ? (
-                priorityContainers.map((container) => (
-                  <a
-                    key={container.container_id}
-                    href={`/dashboard/containers/${container.container_id}`}
-                    className="block rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{container.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{container.address ?? container.container_id}</p>
-                      </div>
-                      <span className="text-sm font-semibold tabular-nums">
-                        {container.latest_state.fused_fill_pct?.toFixed(0) ?? "-"}%
-                      </span>
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {container.latest_state.fill_state && (
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">
-                          {container.latest_state.fill_state.replace(/_/g, " ")}
-                        </span>
-                      )}
-                      {container.latest_state.camera_state === "GARBAGE_DETECTED" && (
-                        <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
-                          Garbage
-                        </span>
-                      )}
-                      {container.latest_state.flame_detected && (
-                        <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
-                          Flame
-                        </span>
-                      )}
-                    </div>
-                  </a>
-                ))
-              ) : (
-                <p className="py-4 text-center text-sm text-muted-foreground">No priority containers</p>
-              )}
-            </CardContent>
-          </Card>
         </aside>
       </div>
     </div>

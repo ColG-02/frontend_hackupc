@@ -186,7 +186,7 @@ export default function CityMapClient({
       attribution: "© OpenStreetMap contributors",
       maxZoom: 19,
     }).addTo(map);
-    map.setView([44.8178, 20.4569], 13);
+    map.setView([41.3851, 2.1734], 13);
     mapRef.current = map;
     markersRef.current = L.layerGroup().addTo(map);
 
